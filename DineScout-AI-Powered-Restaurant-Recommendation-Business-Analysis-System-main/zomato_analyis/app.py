@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
 
 # -----------------------------
 # PAGE CONFIG
@@ -13,12 +14,17 @@ st.set_page_config(
 st.title("🍽️ AI Restaurant Business Consultant")
 st.subheader("Smart Decision Support for Restaurant Owners")
 
+# Fix matplotlib warning (optional but clean)
+st.set_option('deprecation.showPyplotGlobalUse', False)
+
 # -----------------------------
-# LOAD DATA
+# LOAD DATA (FIXED FOR DEPLOYMENT)
 # -----------------------------
 @st.cache_data
 def load_data():
-    return pd.read_csv("zomato.csv", encoding="latin1")
+    base_dir = os.path.dirname(__file__)
+    file_path = os.path.join(base_dir, "zomato.csv")
+    return pd.read_csv(file_path, encoding="latin1")
 
 df = load_data()
 
@@ -145,7 +151,6 @@ if analyze:
 
         for bar in bars:
             h = bar.get_height()
-
             ax1.text(
                 bar.get_x() + bar.get_width() / 2,
                 h + 1,
@@ -177,7 +182,6 @@ if analyze:
 
         for bar in bars:
             h = bar.get_height()
-
             ax2.text(
                 bar.get_x() + bar.get_width() / 2,
                 h + 1,
@@ -190,7 +194,7 @@ if analyze:
         st.pyplot(fig2)
 
     # -----------------------------
-    # SMART 2-WAY SUGGESTIONS
+    # SMART SUGGESTIONS
     # -----------------------------
     st.divider()
     st.markdown("## 🎯 Smart Alternative Suggestions")
@@ -201,7 +205,7 @@ if analyze:
     df_all = df_all.explode("Cuisine_List")
     df_all["Cuisine_List"] = df_all["Cuisine_List"].str.strip()
 
-    # ---- Best Cuisine in Selected City ----
+    # Best cuisine in city
     city_data = df_all[df_all["City"] == city]
 
     city_group = (
@@ -223,11 +227,9 @@ if analyze:
         city_group["total"] / 30 * 0.2
     )
 
-    best_city_cuisine = city_group.sort_values(
-        "score", ascending=False
-    ).iloc[0]
+    best_city_cuisine = city_group.sort_values("score", ascending=False).iloc[0]
 
-    # ---- Best City for Selected Cuisine ----
+    # Best city for cuisine
     cuisine_data = df_all[df_all["Cuisine_List"] == cuisine]
 
     cuisine_group = (
@@ -249,16 +251,13 @@ if analyze:
         cuisine_group["total"] / 30 * 0.2
     )
 
-    best_cuisine_city = cuisine_group.sort_values(
-        "score", ascending=False
-    ).iloc[0]
+    best_cuisine_city = cuisine_group.sort_values("score", ascending=False).iloc[0]
 
-    # ---- Display ----
+    # Display
     c1, c2 = st.columns(2)
 
     with c1:
         st.success("🏙️ Best Cuisine in Your City")
-
         st.metric("City", city)
         st.metric("Cuisine", best_city_cuisine["Cuisine_List"])
         st.metric("Avg Rating", round(best_city_cuisine["avg_rating"], 2))
@@ -266,14 +265,13 @@ if analyze:
 
     with c2:
         st.success("🍜 Best City for Your Cuisine")
-
         st.metric("Cuisine", cuisine)
         st.metric("City", best_cuisine_city["City"])
         st.metric("Avg Rating", round(best_cuisine_city["avg_rating"], 2))
         st.metric("Restaurants", int(best_cuisine_city["total"]))
 
     # -----------------------------
-    # FINAL SUMMARY
+    # SUMMARY
     # -----------------------------
     st.divider()
     st.markdown("## 📄 Consultant Summary")
