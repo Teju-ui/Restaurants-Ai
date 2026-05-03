@@ -15,11 +15,11 @@ st.title("🍽️ AI Restaurant Business Consultant")
 st.subheader("Smart Decision Support for Restaurant Owners")
 
 # -----------------------------
-# LOAD DATA (FIXED FOR DEPLOYMENT)
+# LOAD DATA (FIXED FOR STREAMLIT CLOUD)
 # -----------------------------
 @st.cache_data
 def load_data():
-    base_dir = os.path.dirname(__file__)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(base_dir, "zomato.csv")
     return pd.read_csv(file_path, encoding="latin1")
 
@@ -66,7 +66,7 @@ if analyze:
 
     df_cuisine = df_city[df_city["Cuisine_List"] == cuisine]
 
-    if len(df_cuisine) == 0:
+    if df_cuisine.empty:
         st.warning("No sufficient data available for this selection.")
         st.stop()
 
@@ -120,11 +120,11 @@ if analyze:
 
     left, right = st.columns(2)
 
+    # GRAPH 1
     with left:
         st.caption(f"{cuisine} Demand Across Cities")
 
         cuisine_all = df.copy()
-
         cuisine_all["Cuisine_List"] = cuisine_all["Cuisines"].str.split(",")
         cuisine_all = cuisine_all.explode("Cuisine_List")
         cuisine_all["Cuisine_List"] = cuisine_all["Cuisine_List"].str.strip()
@@ -139,6 +139,7 @@ if analyze:
 
         fig1, ax1 = plt.subplots()
         bars = ax1.bar(cuisine_city.index, cuisine_city.values)
+
         ax1.set_ylabel("Restaurant Count")
         ax1.set_xticklabels(cuisine_city.index, rotation=45, ha="right")
 
@@ -148,6 +149,7 @@ if analyze:
 
         st.pyplot(fig1)
 
+    # GRAPH 2
     with right:
         st.caption(f"{cuisine} Popularity in {city}")
 
@@ -160,6 +162,7 @@ if analyze:
 
         fig2, ax2 = plt.subplots()
         bars = ax2.bar(cuisine_pop.index, cuisine_pop.values)
+
         ax2.set_ylabel("Restaurant Count")
         ax2.set_xticklabels(cuisine_pop.index, rotation=45, ha="right")
 
@@ -181,7 +184,7 @@ if analyze:
 
     • Demand Level: **{demand_level}**  
     • Avg Rating: **{avg_rating}**  
-    • Avg Cost: **₹{avg_cost}**  
+    • Avg Cost for Two: **₹{avg_cost}**  
     • Avg Votes: **{avg_votes}**
 
     🔹 Recommendation: **{recommendation}**
