@@ -14,9 +14,6 @@ st.set_page_config(
 st.title("🍽️ AI Restaurant Business Consultant")
 st.subheader("Smart Decision Support for Restaurant Owners")
 
-# Fix matplotlib warning (optional but clean)
-st.set_option('deprecation.showPyplotGlobalUse', False)
-
 # -----------------------------
 # LOAD DATA (FIXED FOR DEPLOYMENT)
 # -----------------------------
@@ -61,7 +58,6 @@ if analyze:
 
     st.divider()
 
-    # Prepare city data
     df_city = df[df["City"] == city].copy()
 
     df_city["Cuisine_List"] = df_city["Cuisines"].str.split(",")
@@ -104,7 +100,7 @@ if analyze:
     st.info(f"📈 Demand Level for {cuisine} in {city}: {demand_level}")
 
     # -----------------------------
-    # BUSINESS RECOMMENDATION
+    # RECOMMENDATION
     # -----------------------------
     st.markdown("## ✅ Business Recommendation")
 
@@ -118,13 +114,12 @@ if analyze:
     st.success(recommendation)
 
     # -----------------------------
-    # SUPPORTING GRAPHS
+    # GRAPHS
     # -----------------------------
     st.markdown("## 📊 Supporting Analysis")
 
     left, right = st.columns(2)
 
-    # -------- GRAPH 1 --------
     with left:
         st.caption(f"{cuisine} Demand Across Cities")
 
@@ -142,27 +137,17 @@ if analyze:
             .head(8)
         )
 
-        fig1, ax1 = plt.subplots(figsize=(4.5, 3))
-
+        fig1, ax1 = plt.subplots()
         bars = ax1.bar(cuisine_city.index, cuisine_city.values)
-
         ax1.set_ylabel("Restaurant Count")
         ax1.set_xticklabels(cuisine_city.index, rotation=45, ha="right")
 
         for bar in bars:
             h = bar.get_height()
-            ax1.text(
-                bar.get_x() + bar.get_width() / 2,
-                h + 1,
-                int(h),
-                ha="center",
-                fontsize=9,
-                fontweight="bold"
-            )
+            ax1.text(bar.get_x() + bar.get_width()/2, h + 1, int(h), ha="center")
 
         st.pyplot(fig1)
 
-    # -------- GRAPH 2 --------
     with right:
         st.caption(f"{cuisine} Popularity in {city}")
 
@@ -173,102 +158,16 @@ if analyze:
             .head(8)
         )
 
-        fig2, ax2 = plt.subplots(figsize=(4.5, 3))
-
+        fig2, ax2 = plt.subplots()
         bars = ax2.bar(cuisine_pop.index, cuisine_pop.values)
-
         ax2.set_ylabel("Restaurant Count")
         ax2.set_xticklabels(cuisine_pop.index, rotation=45, ha="right")
 
         for bar in bars:
             h = bar.get_height()
-            ax2.text(
-                bar.get_x() + bar.get_width() / 2,
-                h + 1,
-                int(h),
-                ha="center",
-                fontsize=9,
-                fontweight="bold"
-            )
+            ax2.text(bar.get_x() + bar.get_width()/2, h + 1, int(h), ha="center")
 
         st.pyplot(fig2)
-
-    # -----------------------------
-    # SMART SUGGESTIONS
-    # -----------------------------
-    st.divider()
-    st.markdown("## 🎯 Smart Alternative Suggestions")
-
-    df_all = df.copy()
-
-    df_all["Cuisine_List"] = df_all["Cuisines"].str.split(",")
-    df_all = df_all.explode("Cuisine_List")
-    df_all["Cuisine_List"] = df_all["Cuisine_List"].str.strip()
-
-    # Best cuisine in city
-    city_data = df_all[df_all["City"] == city]
-
-    city_group = (
-        city_data
-        .groupby("Cuisine_List")
-        .agg(
-            avg_rating=("Aggregate rating", "mean"),
-            total=("Restaurant ID", "count"),
-            avg_votes=("Votes", "mean")
-        )
-        .reset_index()
-    )
-
-    city_group = city_group[city_group["total"] >= 5]
-
-    city_group["score"] = (
-        city_group["avg_rating"] * 0.5 +
-        city_group["avg_votes"] / 500 * 0.3 +
-        city_group["total"] / 30 * 0.2
-    )
-
-    best_city_cuisine = city_group.sort_values("score", ascending=False).iloc[0]
-
-    # Best city for cuisine
-    cuisine_data = df_all[df_all["Cuisine_List"] == cuisine]
-
-    cuisine_group = (
-        cuisine_data
-        .groupby("City")
-        .agg(
-            avg_rating=("Aggregate rating", "mean"),
-            total=("Restaurant ID", "count"),
-            avg_votes=("Votes", "mean")
-        )
-        .reset_index()
-    )
-
-    cuisine_group = cuisine_group[cuisine_group["total"] >= 5]
-
-    cuisine_group["score"] = (
-        cuisine_group["avg_rating"] * 0.5 +
-        cuisine_group["avg_votes"] / 500 * 0.3 +
-        cuisine_group["total"] / 30 * 0.2
-    )
-
-    best_cuisine_city = cuisine_group.sort_values("score", ascending=False).iloc[0]
-
-    # Display
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.success("🏙️ Best Cuisine in Your City")
-        st.metric("City", city)
-        st.metric("Cuisine", best_city_cuisine["Cuisine_List"])
-        st.metric("Avg Rating", round(best_city_cuisine["avg_rating"], 2))
-        st.metric("Restaurants", int(best_city_cuisine["total"]))
-
-    with c2:
-        st.success("🍜 Best City for Your Cuisine")
-        st.metric("Cuisine", cuisine)
-        st.metric("City", best_cuisine_city["City"])
-        st.metric("Avg Rating", round(best_cuisine_city["avg_rating"], 2))
-        st.metric("Restaurants", int(best_cuisine_city["total"]))
 
     # -----------------------------
     # SUMMARY
@@ -282,7 +181,7 @@ if analyze:
 
     • Demand Level: **{demand_level}**  
     • Avg Rating: **{avg_rating}**  
-    • Avg Cost for Two: **₹{avg_cost}**  
+    • Avg Cost: **₹{avg_cost}**  
     • Avg Votes: **{avg_votes}**
 
     🔹 Recommendation: **{recommendation}**
