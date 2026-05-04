@@ -55,14 +55,17 @@ app.use(express.static(path.join(__dirname, "../frontend")));
 
 
 // ================= MONGODB =================
-mongoose.connect(process.env.MONGO_URI, {
-  dbName: "dinescout"
-})
-.then(() => console.log("MongoDB Connected ✅"))
-.catch(err => {
-  console.log("Mongo Error:", err);
-  process.exit(1); // stop server if DB fails
-});
+if (process.env.MONGO_URI) {
+  mongoose.connect(process.env.MONGO_URI, {
+    dbName: "dinescout"
+  })
+  .then(() => console.log("MongoDB Connected ✅"))
+  .catch(err => {
+    console.log("Mongo Error:", err);
+  });
+} else {
+  console.log("MONGO_URI is missing from Environment Variables!");
+}
 
 
 // ================= SERVER =================
