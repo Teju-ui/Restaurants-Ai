@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>DineScout - Register</title>
@@ -20,7 +21,7 @@
       padding: 35px;
       width: 380px;
       border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       text-align: center;
     }
 
@@ -28,7 +29,8 @@
       margin-bottom: 20px;
     }
 
-    input, select {
+    input,
+    select {
       width: 100%;
       padding: 12px;
       margin: 8px 0;
@@ -68,100 +70,124 @@
       color: #ff5722;
       text-decoration: none;
     }
+
+    .otp-box {
+      display: none;
+      margin-top: 15px;
+    }
   </style>
 </head>
 
 <body>
 
-<div class="card">
+  <div class="card">
 
-  <h2>Create Account</h2>
+    <h2>Create Account</h2>
 
-  <input type="text" id="username" placeholder="Username" />
-  <input type="email" id="email" placeholder="Email" />
-  <input type="password" id="password" placeholder="Password" />
+    <!-- REGISTER FORM -->
+    <div id="registerBox">
 
-  <select id="role">
-    <option value="">Select Role</option>
-    <option value="user">User</option>
-    <option value="owner">Restaurant Owner</option>
-  </select>
+      <input type="text" id="username" placeholder="Username" />
 
-  <button onclick="register()">Register</button>
+      <input type="email" id="email" placeholder="Email" />
 
-  <p id="msg"></p>
+      <input type="password" id="password" placeholder="Password" />
 
-  <div class="link">
-    Already have account?
-    <a href="login.html">Login</a>
+      <select id="role">
+        <option value="">Select Role</option>
+        <option value="user">User</option>
+        <option value="owner">Restaurant Owner</option>
+      </select>
+
+      <button onclick="register()">Register</button>
+
+    </div>
+
+
+    <!-- OTP VERIFY -->
+    <div class="otp-box" id="otpBox">
+
+      <input type="text" id="otp" placeholder="Enter OTP" maxlength="6" />
+
+      <button onclick="verifyOTP()">Verify OTP</button>
+
+    </div>
+
+
+    <p id="msg"></p>
+
+    <div class="link">
+      Already have account?
+      <a href="login.html">Login</a>
+    </div>
+
   </div>
 
-</div>
 
-<script>
+  <script>
 
-async function register() {
+    let savedEmail = "";
 
-  const username = document.getElementById("username").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const role = document.getElementById("role").value;
 
-  const msg = document.getElementById("msg");
-  msg.innerText = "";
-  msg.style.color = "red";
+    // ================= REGISTER =================
+    async function register() {
 
-  // Validation
-  if (!username || !email || !password || !role) {
-    msg.innerText = "All fields required";
-    return;
-  }
+      const username = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const role = document.getElementById("role").value;
 
-  try {
+      const msg = document.getElementById("msg");
+      msg.innerText = "";
 
-    const res = await fetch("http://127.0.0.1:5000/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        username,
-        email,
-        password,
-        role
-      })
-    });
+      // Validation
+      if (!username || !email || !password || !role) {
+        msg.innerText = "All fields required";
+        return;
+      }
 
-    const text = await res.text();
-    let data;
+      try {
 
-    try {
-      data = JSON.parse(text);
-    } catch {
-      throw new Error("Invalid JSON from server");
+        const res = await fetch("http://localhost:5000/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            username,
+            email,
+            password,
+            role
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          msg.innerText = data.message || "Registration failed";
+          return;
+        }
+
+        // Success
+        msg.style.color = "green";
+        msg.innerText = "Registered successfully! Redirecting...";
+
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 1500);
+
+      } catch (err) {
+
+        console.error("REGISTER ERROR:", err);
+        msg.innerText = "Cannot connect to server";
+
+      }
+
     }
 
-    if (!res.ok) {
-      msg.innerText = data.message || "Registration failed";
-      return;
-    }
 
-    // ✅ SUCCESS
-    msg.style.color = "green";
-    msg.innerText = "Registered successfully! Redirecting...";
-
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 1500);
-
-  } catch (err) {
-    console.error("FULL ERROR:", err);
-    msg.innerText = "Server not responding properly";
-  }
-
-}
-
-</script>
+  </script>
 
 </body>
+
 </html>
