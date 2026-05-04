@@ -68,7 +68,9 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "All fields required" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ 
+      $or: [{ email: email }, { username: email }] 
+    });
 
     if (!user) {
       return res.status(400).json({ message: "User not found" });
