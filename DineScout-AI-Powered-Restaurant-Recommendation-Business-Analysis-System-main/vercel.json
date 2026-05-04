@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "DineScout/backend/server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "DineScout/frontend/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/DineScout/backend/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/DineScout/frontend/$1"
+    }
+  ]
+}

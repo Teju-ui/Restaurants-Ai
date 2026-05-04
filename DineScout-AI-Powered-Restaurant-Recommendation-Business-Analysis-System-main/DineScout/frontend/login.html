@@ -111,7 +111,7 @@
 
       try {
 
-        const res = await fetch("http://localhost:5000/api/auth/login", {
+        const res = await fetch("/api/auth/login", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -135,7 +135,7 @@
 
         // Redirect by role
         if (data.role === "owner") {
-          window.location.href = "http://localhost:8501/"; // Redirects to Streamlit Consultant App
+          window.location.href = "https://restaurants-ai-nmvlty2jhoysrmygcbipna.streamlit.app/"; // Redirects to LIVE Streamlit Consultant App
         } else {
           window.location.href = "index.html"; // Redirects to User Restaurant & Food App
         }
