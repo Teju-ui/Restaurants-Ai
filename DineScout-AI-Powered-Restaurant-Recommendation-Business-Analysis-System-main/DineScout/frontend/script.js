@@ -60,7 +60,7 @@ function searchRestaurants() {
   resultDiv.innerHTML = "Loading...";
 
   fetch(
-    `http://localhost:5000/api/restaurants/search?cuisine=${cuisine}&budget=${budget || 99999}&lat=${userLat}&lon=${userLon}`,
+    `/api/restaurants/search?cuisine=${cuisine}&budget=${budget || 99999}&lat=${userLat}&lon=${userLon}`,
     {
       headers: {
         Authorization: token
