@@ -10,10 +10,78 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🍽️ AI Restaurant Business Consultant")
-st.subheader("Smart Decision Support for Restaurant Owners")
+st.markdown("""
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; padding: 0; color: #1e293b;">AI Business Consultant</h2>
+        <a href="https://restaurants-ai-sigma.vercel.app/login.html" target="_self">
+            <button style="background: #ff5722; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; font-weight: bold;">
+                Logout
+            </button>
+        </a>
+    </div>
+""", unsafe_allow_html=True)
 
-# -----------------------------
+# Inject custom CSS to match owner-dashboard.html theme exactly
+st.markdown("""
+    <style>
+    /* Main Background */
+    .stApp {
+        background-color: #f5f7fb;
+    }
+    
+    /* Sidebar styling to match #1e293b */
+    [data-testid="stSidebar"] {
+        background-color: #1e293b;
+        color: white;
+    }
+    
+    /* Sidebar text color for labels and headers */
+    [data-testid="stSidebar"] h1, 
+    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] h3, 
+    [data-testid="stSidebar"] label {
+        color: white !important;
+    }
+    
+    /* Ensure select dropdown text is black */
+    div[data-baseweb="select"] * {
+        color: black !important;
+    }
+    
+    /* Primary buttons to be orange */
+    .stButton > button {
+        background-color: #ff5722 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 5px !important;
+        padding: 10px 24px !important;
+    }
+    .stButton > button:hover {
+        background-color: #e64a19 !important;
+    }
+    
+    /* Metric cards styling */
+    [data-testid="metric-container"] {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    /* Metric label styling */
+    [data-testid="metric-container"] > div:first-child {
+        color: #ff5722 !important;
+        font-weight: bold !important;
+    }
+    
+    /* Hide default Streamlit footer and menu */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
 # LOAD DATA
 # -----------------------------
 @st.cache_data
@@ -112,183 +180,64 @@ if analyze:
     st.success(recommendation)
 
     # -----------------------------
-    # SUPPORTING GRAPHS
+    # TOP CUISINES IN CITY
     # -----------------------------
-    st.markdown("## 📊 Supporting Analysis")
-
-    left, right = st.columns(2)
-
-    # -------- GRAPH 1 --------
-    with left:
-        st.caption(f"{cuisine} Demand Across Cities")
-
-        cuisine_all = df.copy()
-
-        cuisine_all["Cuisine_List"] = cuisine_all["Cuisines"].str.split(",")
-        cuisine_all = cuisine_all.explode("Cuisine_List")
-        cuisine_all["Cuisine_List"] = cuisine_all["Cuisine_List"].str.strip()
-
-        cuisine_city = (
-            cuisine_all[cuisine_all["Cuisine_List"] == cuisine]
-            .groupby("City")
-            .size()
-            .sort_values(ascending=False)
-            .head(8)
-        )
-
-        fig1, ax1 = plt.subplots(figsize=(4.5, 3))
-
-        bars = ax1.bar(cuisine_city.index, cuisine_city.values)
-
-        ax1.set_ylabel("Restaurant Count")
-        ax1.set_xticklabels(cuisine_city.index, rotation=45, ha="right")
-
-        for bar in bars:
-            h = bar.get_height()
-
-            ax1.text(
-                bar.get_x() + bar.get_width() / 2,
-                h + 1,
-                int(h),
-                ha="center",
-                fontsize=9,
-                fontweight="bold"
-            )
-
-        st.pyplot(fig1)
-
-    # -------- GRAPH 2 --------
-    with right:
-        st.caption(f"{cuisine} Popularity in {city}")
-
-        cuisine_pop = (
-            df_city.groupby("Cuisine_List")
-            .size()
-            .sort_values(ascending=False)
-            .head(8)
-        )
-
-        fig2, ax2 = plt.subplots(figsize=(4.5, 3))
-
-        bars = ax2.bar(cuisine_pop.index, cuisine_pop.values)
-
-        ax2.set_ylabel("Restaurant Count")
-        ax2.set_xticklabels(cuisine_pop.index, rotation=45, ha="right")
-
-        for bar in bars:
-            h = bar.get_height()
-
-            ax2.text(
-                bar.get_x() + bar.get_width() / 2,
-                h + 1,
-                int(h),
-                ha="center",
-                fontsize=9,
-                fontweight="bold"
-            )
-
-        st.pyplot(fig2)
-
-    # -----------------------------
-    # SMART 2-WAY SUGGESTIONS
-    # -----------------------------
-    st.divider()
-    st.markdown("## 🎯 Smart Alternative Suggestions")
-
-    df_all = df.copy()
-
-    df_all["Cuisine_List"] = df_all["Cuisines"].str.split(",")
-    df_all = df_all.explode("Cuisine_List")
-    df_all["Cuisine_List"] = df_all["Cuisine_List"].str.strip()
-
-    # ---- Best Cuisine in Selected City ----
-    city_data = df_all[df_all["City"] == city]
-
-    city_group = (
-        city_data
-        .groupby("Cuisine_List")
-        .agg(
-            avg_rating=("Aggregate rating", "mean"),
-            total=("Restaurant ID", "count"),
-            avg_votes=("Votes", "mean")
-        )
-        .reset_index()
+    st.markdown("---")
+    st.markdown(f"### 📌 Top Cuisines in {city}")
+    
+    top_city_cuisines = (
+        df_city["Cuisine_List"]
+        .value_counts()
+        .head(10)
+        .to_dict()
     )
-
-    city_group = city_group[city_group["total"] >= 5]
-
-    city_group["score"] = (
-        city_group["avg_rating"] * 0.5 +
-        city_group["avg_votes"] / 500 * 0.3 +
-        city_group["total"] / 30 * 0.2
-    )
-
-    best_city_cuisine = city_group.sort_values(
-        "score", ascending=False
-    ).iloc[0]
-
-    # ---- Best City for Selected Cuisine ----
-    cuisine_data = df_all[df_all["Cuisine_List"] == cuisine]
-
-    cuisine_group = (
-        cuisine_data
-        .groupby("City")
-        .agg(
-            avg_rating=("Aggregate rating", "mean"),
-            total=("Restaurant ID", "count"),
-            avg_votes=("Votes", "mean")
-        )
-        .reset_index()
-    )
-
-    cuisine_group = cuisine_group[cuisine_group["total"] >= 5]
-
-    cuisine_group["score"] = (
-        cuisine_group["avg_rating"] * 0.5 +
-        cuisine_group["avg_votes"] / 500 * 0.3 +
-        cuisine_group["total"] / 30 * 0.2
-    )
-
-    best_cuisine_city = cuisine_group.sort_values(
-        "score", ascending=False
-    ).iloc[0]
-
-    # ---- Display ----
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.success("🏙️ Best Cuisine in Your City")
-
-        st.metric("City", city)
-        st.metric("Cuisine", best_city_cuisine["Cuisine_List"])
-        st.metric("Avg Rating", round(best_city_cuisine["avg_rating"], 2))
-        st.metric("Restaurants", int(best_city_cuisine["total"]))
-
-    with c2:
-        st.success("🍜 Best City for Your Cuisine")
-
-        st.metric("Cuisine", cuisine)
-        st.metric("City", best_cuisine_city["City"])
-        st.metric("Avg Rating", round(best_cuisine_city["avg_rating"], 2))
-        st.metric("Restaurants", int(best_cuisine_city["total"]))
-
+    
+    html_city_cuisines = "<ul>"
+    for k, v in top_city_cuisines.items():
+        html_city_cuisines += f"<li>{k} ({v})</li>"
+    html_city_cuisines += "</ul>"
+    
+    st.markdown(html_city_cuisines, unsafe_allow_html=True)
+    
     # -----------------------------
-    # FINAL SUMMARY
+    # TOP CITIES FOR CUISINE
     # -----------------------------
-    st.divider()
-    st.markdown("## 📄 Consultant Summary")
-
-    st.write(f"""
-    ✔ City: **{city}**  
-    ✔ Cuisine: **{cuisine}**
-
-    • Demand Level: **{demand_level}**  
-    • Avg Rating: **{avg_rating}**  
-    • Avg Cost for Two: **₹{avg_cost}**  
-    • Avg Votes: **{avg_votes}**
-
-    🔹 Recommendation: **{recommendation}**
-    """)
+    st.markdown(f"### 🌍 Top Cities for {cuisine}")
+    
+    # Needs to get all data for cuisine, not just city data
+    cuisine_all = df.copy()
+    cuisine_all["Cuisine_List"] = cuisine_all["Cuisines"].str.split(",")
+    cuisine_all = cuisine_all.explode("Cuisine_List")
+    cuisine_all["Cuisine_List"] = cuisine_all["Cuisine_List"].str.strip()
+    
+    top_cuisine_cities = (
+        cuisine_all[cuisine_all["Cuisine_List"] == cuisine]["City"]
+        .value_counts()
+        .head(10)
+        .to_dict()
+    )
+    
+    html_cuisine_cities = "<ul>"
+    for k, v in top_cuisine_cities.items():
+        html_cuisine_cities += f"<li>{k} ({v})</li>"
+    html_cuisine_cities += "</ul>"
+    
+    st.markdown(html_cuisine_cities, unsafe_allow_html=True)
+    
+    # -----------------------------
+    # BEST BUSINESS OPTIONS
+    # -----------------------------
+    st.markdown("### 💡 Best Business Options")
+    
+    best_option_1 = f"Start {cuisine} restaurant in {city}"
+    
+    if len(top_cuisine_cities) > 0:
+        best_city = list(top_cuisine_cities.keys())[0]
+        best_option_2 = f"Try {cuisine} in {best_city}"
+    else:
+        best_option_2 = "Explore new cities"
+        
+    st.markdown(f"<ul><li>{best_option_1}</li><li>{best_option_2}</li></ul>", unsafe_allow_html=True)
 
 else:
     st.info("👈 Select inputs and click **Analyze Market** to begin.")
