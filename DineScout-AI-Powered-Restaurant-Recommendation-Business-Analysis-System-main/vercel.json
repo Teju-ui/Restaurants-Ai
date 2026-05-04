@@ -16,6 +16,10 @@
       "dest": "/DineScout/backend/server.js"
     },
     {
+      "src": "/",
+      "dest": "/DineScout/frontend/login.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/DineScout/frontend/$1"
     }
